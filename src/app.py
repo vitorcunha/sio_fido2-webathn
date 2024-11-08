@@ -85,25 +85,7 @@ def handler_generate_registration_options():
 
     user = in_memory_db[logged_in_user_id]
 
-    options = generate_registration_options(
-        rp_id=rp_id,
-        rp_name=rp_name,
-        user_id=user.id,
-        user_name=user.username,
-        exclude_credentials=[
-            {"id": cred.id, "transports": cred.transports, "type": "public-key"}
-            for cred in user.credentials
-        ],
-        authenticator_selection=AuthenticatorSelectionCriteria(
-            user_verification=UserVerificationRequirement.REQUIRED
-        ),
-        supported_pub_key_algs=[
-            COSEAlgorithmIdentifier.ECDSA_SHA_256,
-            COSEAlgorithmIdentifier.RSASSA_PKCS1_v1_5_SHA_256,
-        ],
-    )
-
-    current_registration_challenge = options.challenge
+    # TODO: implement me!
 
     return options_to_json(options)
 
@@ -115,29 +97,10 @@ def handler_verify_registration_response():
 
     body = request.get_data()
 
-    try:
-        credential = RegistrationCredential.parse_raw(body)
-        verification = verify_registration_response(
-            credential=credential,
-            expected_challenge=current_registration_challenge,
-            expected_rp_id=rp_id,
-            expected_origin=origin,
-        )
-    except Exception as err:
-        return {"verified": False, "msg": str(err), "status": 400}
+    # TODO: implement me!
 
-    user = in_memory_db[logged_in_user_id]
-
-    new_credential = Credential(
-        id=verification.credential_id,
-        public_key=verification.credential_public_key,
-        sign_count=verification.sign_count,
-        transports=json.loads(body).get("transports", []),
-    )
-
-    user.credentials.append(new_credential)
-
-    return {"verified": True}
+    # !! Warning: default return may be changed here !!
+    return {"verified": False}
 
 
 ################
@@ -154,16 +117,7 @@ def handler_generate_authentication_options():
 
     user = in_memory_db[logged_in_user_id]
 
-    options = generate_authentication_options(
-        rp_id=rp_id,
-        allow_credentials=[
-            {"type": "public-key", "id": cred.id, "transports": cred.transports}
-            for cred in user.credentials
-        ],
-        user_verification=UserVerificationRequirement.REQUIRED,
-    )
-
-    current_authentication_challenge = options.challenge
+    # TODO: implement me!
 
     return options_to_json(options)
 
@@ -175,33 +129,7 @@ def hander_verify_authentication_response():
 
     body = request.get_data()
 
-    try:
-        credential = AuthenticationCredential.parse_raw(body)
+    # TODO: implement me!
 
-        # Find the user's corresponding public key
-        user = in_memory_db[logged_in_user_id]
-        user_credential = None
-        for _cred in user.credentials:
-            if _cred.id == credential.raw_id:
-                user_credential = _cred
-
-        if user_credential is None:
-            raise Exception("Could not find corresponding public key in DB")
-
-        # Verify the assertion
-        verification = verify_authentication_response(
-            credential=credential,
-            expected_challenge=current_authentication_challenge,
-            expected_rp_id=rp_id,
-            expected_origin=origin,
-            credential_public_key=user_credential.public_key,
-            credential_current_sign_count=user_credential.sign_count,
-            require_user_verification=True,
-        )
-    except Exception as err:
-        return {"verified": False, "msg": str(err), "status": 400}
-
-    # Update our credential's sign count to what the authenticator says it is now
-    user_credential.sign_count = verification.new_sign_count
-
-    return {"verified": True}
+    # !! Warning: default return may be changed here !!
+    return {"verified": False}
